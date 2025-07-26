@@ -1,0 +1,58 @@
+name: Build KernelSU Kernel
+
+on:
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up environment
+      run: |
+        sudo apt update
+        sudo apt install -y build-essential bc bison flex libssl-dev libelf-dev \
+          git wget curl rsync device-tree-compiler python3 python-is-python3 \
+          unzip cpio libncurses-dev
+
+    - name: Clone kernel source
+      run: |
+        git clone --depth=1 https://github.com/MiCode/Xiaomi_Kernel_OpenSource -b elish-r-oss kernel
+
+    - name: Apply KernelSU patch
+      run: |
+        cd kernel
+        curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+
+    - name: Download Clang toolchain
+      run: |
+        mkdir clang && cd clang
+        wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/android-exynos-r11-4.19-android15-qpr2/clang-r416183c.tar.gz
+        tar -xf clang-r416183c.tar.gz
+        cd ..
+
+    - name: Build kernel
+      run: |
+        export PATH=$PWD/clang/bin:$PATH
+        export ARCH=arm64
+        export SUBARCH=arm64
+        export CROSS_COMPILE=aarch64-linux-android-
+        export CLANG_TRIPLE=aarch64-linux-gnu-
+
+        cd kernel
+        make O=out CC=clang elish_defconfig
+
+        echo "CONFIG_KPROBES=y"           >> out/.config
+        echo "CONFIG_HAVE_KPROBES=y"      >> out/.config
+        echo "CONFIG_KPROBE_EVENTS=y"     >> out/.config
+        
+        make -j$(nproc) O=out CC=clang
+
+    - name: Upload Image.gz-dtb
+      uses: actions/upload-artifact@v3
+      with:
+        name: image-gz-dtb
+        path: kernel/out/arch/arm64/boot/Image.gz-dtb
