@@ -51,13 +51,13 @@ jobs:
         export AR=llvm-ar
 
         cd kernel
-        make O=out CC=clang defconfig
+        make ARCH=arm64 O=out CC=clang defconfig
 
         echo "CONFIG_KPROBES=y"           >> out/.config
         echo "CONFIG_HAVE_KPROBES=y"      >> out/.config
         echo "CONFIG_KPROBE_EVENTS=y"     >> out/.config
-        
-        make -j$(nproc) O=out CC=clang
+
+        make ARCH=arm64 O=out CC=clang -j$(nproc)
 
     - name: Upload Image.gz-dtb
       uses: actions/upload-artifact@v4
