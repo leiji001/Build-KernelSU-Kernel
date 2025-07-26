@@ -43,7 +43,7 @@ jobs:
         export CLANG_TRIPLE=aarch64-linux-gnu-
 
         cd kernel
-        make O=out CC=clang elish_defconfig
+        make O=out CC=clang defconfig
 
         echo "CONFIG_KPROBES=y"           >> out/.config
         echo "CONFIG_HAVE_KPROBES=y"      >> out/.config
