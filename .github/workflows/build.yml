@@ -41,6 +41,14 @@ jobs:
         export SUBARCH=arm64
         export CROSS_COMPILE=aarch64-linux-android-
         export CLANG_TRIPLE=aarch64-linux-gnu-
+        export LD=ld.lld
+        export AS=llvm-as
+        export NM=llvm-nm
+        export STRIP=llvm-strip
+        export OBJCOPY=llvm-objcopy
+        export OBJDUMP=llvm-objdump
+        export READELF=llvm-readelf
+        export AR=llvm-ar
 
         cd kernel
         make O=out CC=clang defconfig
